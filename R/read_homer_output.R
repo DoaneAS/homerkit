@@ -190,6 +190,9 @@ read_annotatePeaks_tsv <- function(motif_file) {
 #' @export
 read_findMotifs_html <- function(html_file) {
   doc <- XML::htmlParse(html_file)
+  # get table ---------------------------
+  o <- XML::getNodeSet(doc, "//table")
+  ttab <- XML::readHTMLTable(o[[1]])
 
   # Get the text inside h4 elements:
   o <- XML::getNodeSet(doc, "//h4")
@@ -212,6 +215,15 @@ read_findMotifs_html <- function(html_file) {
 
   x <- as.data.frame(reshape2::dcast(x, match_name ~ variable, value.var = "value"))
   x$motif <- stringr::str_split_fixed(basename(html_file), "\\.", 2)[,1]
+
+
+  # parse denovo table ---------------------------
+  x$motif_logPval <- ttab[1,2]
+  x$motif_logPval <- as.numeric(x$motif_logPval)
+  x$motif_percent_target =  stringr::str_replace(ttab[5,2], "\\%", "")
+  x$motif_percent_background =  stringr::str_replace(ttab[7,2], "\\%", "")
+  x$motif_percent_target =  as.numeric(x$motif_percent_target)
+  x$motif_percent_background =  as.numeric(x$motif_percent_background)
 
   x$match_rank <- as.numeric(x$match_rank)
   x$offset <- as.numeric(x$offset)
