@@ -129,7 +129,7 @@ read_homer_output <- function(folder = "", max_files = 100) {
 #' Read a HOMER motif file.
 #'
 #' @export
-read_annotatePeaks_tsv <- function(motif_file) {
+read_annotatePeaks_tsv <- function(motif_file, mpeak=FALSE) {
   dat <- readr::read_tsv(
     file = motif_file,
     col_types = readr::cols(
@@ -152,14 +152,19 @@ read_annotatePeaks_tsv <- function(motif_file) {
 
   # Column 22 is "<BESTGUESS> Distance From Peak(sequence,strand,conservation)"
   best_guess <- stringr::str_split_fixed(colnames(dat)[22], " ", 2)[,1]
-  colnames(dat)[22] <- stringr::str_split_fixed(colnames(dat)[22], " ", 2)[,2]
+  if (mpeak==TRUE){
+    colnames(dat)[22] <- "mscore" #stringr::str_split_fixed(colnames(dat)[22], " ", 2)[,2]
+  } else {
+    if (mpeak==FALSE) {
+      colnames(dat)[22] <- stringr::str_split_fixed(colnames(dat)[22], " ", 2)[,2]
 
-  x <- stringr::str_match(dat[[22]], "^(-?[0-9]+)\\(([A-Z]+),([+-]),([0-9.]+)\\)")
-  dat$distance_to_peak <- as.numeric(x[,2])
-  dat$peak_sequence <- x[,3]
-  dat$peak_strand <- x[,4]
-  dat$peak_conservation <- as.numeric(x[,5])
-  dat[[22]] <- NULL
+      x <- stringr::str_match(dat[[22]], "^(-?[0-9]+)\\(([A-Z]+),([+-]),([0-9.]+)\\)")
+      dat$distance_to_peak <- as.numeric(x[,2])
+      dat$peak_sequence <- x[,3]
+      dat$peak_strand <- x[,4]
+      dat$peak_conservation <- as.numeric(x[,5])
+      dat[[22]] <- NULL
+    }}
 
   dat$best_guess <- best_guess
   dat$motif <- stringr::str_split_fixed(basename(motif_file), "\\.", 2)[,1]
